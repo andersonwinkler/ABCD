@@ -187,7 +187,12 @@ famtype = tab(:,9);
 B = cell(numel(F),1);
 for f = 1:numel(F)
     fidx = famid == F(f);
-    B{f} = horzcat(famid(fidx),sibtype(fidx),tab(fidx,1));
+    ft = famtype(find(fidx,1));
+    if any(ft == [210 2010])
+        B{f} = horzcat(-famid(fidx),sibtype(fidx),tab(fidx,1));
+    else
+        B{f} = horzcat(famid(fidx),sibtype(fidx),tab(fidx,1));
+    end
 end
 
 % Concatenate all. Prepending the famtype ensures that the
