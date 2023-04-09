@@ -100,7 +100,7 @@ ids_new   = (1:Nall)';
 %   MZ is coded as 1000
 %   DZ is coded as 100
 %   Singleton or ordinary sib is coded as 10
-zygos = cell2mat(acspsw03(:,[zygo1_col zygo2_col zygo3_col zygo4_col]));
+zygos = cell2mat(acspsw03(:,zygo1_col|zygo2_col|zygo3_col|zygo4_col));
 sibtype = 10*ones(size(zygos));
 sibtype(zygos == 1) = 1000;
 if dz2sib
@@ -120,7 +120,8 @@ relgid = cell2mat(acspsw03(:,rel_gid_col));
 % Subselect subjects as needed
 if numel(ids) > 0
     idx = false(Nall,1);
-    for id = ids
+    for i = 1:numel(ids)
+        id = ids{i};
         idxx = strcmpi(ids_raw,id);
         if not(any(idxx))
             error('Subject %s not found. Remove from the provided set of IDs and re-run.',id);
