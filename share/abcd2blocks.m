@@ -33,11 +33,10 @@ function varargout = abcd2blocks(varargin)
 % http://brainder.org
 
 warning off backtrace
-% clear
-% acspsw03file = 'acspsw03.txt';
+% restrfile = 'acspsw03.txt';
 % blocksfile = 'eb.csv';
 % dz2sib = false;
-% ids = [];
+% ids = SelIDs;
 
 if nargin >= 1
     restrfile = varargin{1};
@@ -119,14 +118,13 @@ relgid = cell2mat(acspsw03(:,rel_gid_col));
 
 % Subselect subjects as needed
 if numel(ids) > 0
-    idx = false(Nall,1);
+    idx = zeros(size(ids));
     for i = 1:numel(ids)
-        id = ids{i};
-        idxx = strcmpi(ids_raw,id);
+        idxx = find(strcmpi(ids_raw,ids{i}));
         if not(any(idxx))
-            error('Subject %s not found. Remove from the provided set of IDs and re-run.',id);
+            error('Subject %s not found. Remove from the provided set of IDs and re-run.',ids{i});
         end
-        idx = idx | idxx;
+        idx(i) = idxx;
     end
     ids_new = ids_new(idx);
     famid   = famid(idx,:);
@@ -134,6 +132,15 @@ if numel(ids) > 0
     sibtype = sibtype(idx,:);
 end
 N = numel(ids_new);
+
+% If the MZ or DZ twin is missing for a subject, treat them as ordinary sib
+twidx = find(sibtype == 1000 | sibtype == 100);
+for s = twidx'
+    idx = famid == famid(s) & sibtype == sibtype(s);
+    if sum(idx) == 1
+        sibtype(s) = 10;
+    end
+end
 
 % Label each family according to their type. The "type" is
 % determined by the number and type of siblings.
@@ -168,7 +175,7 @@ B = [-ones(N,1) famtype -famid relgid sibtype ids_new];
 
 % Save as CSV
 if ~isempty(blocksfile) && ischar(blocksfile)
-    dlmwrite(blocksfile,B,'precision','%d');
+    dlmwrite(blocksfile,B,'precision','%d'); %#ok<DLMWT> 
 end
 
 % Return EB array to the workspace
